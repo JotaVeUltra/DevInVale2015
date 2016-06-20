@@ -59,7 +59,9 @@ class Game:
         self.score_font = pygame.font.SysFont(font_name, 38)
 
     def _init_screen(self):
-        self.screen = pygame.display.set_mode((956, 560), 0, 32)
+        self.width = 956
+        self.height = 560
+        self.screen = pygame.display.set_mode((self.width, self.height), 0, 32)
         pygame.display.set_caption('DevInVale 2015')
 
     def _init_sound(self):

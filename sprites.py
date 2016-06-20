@@ -25,13 +25,13 @@ class Ship(Sprite):
 
             x_move = 0
             y_move = 0
-            if self.game.input.up_pressed:
+            if self.game.input.up_pressed and not self.rect.top <= 0:
                 y_move -= 20
-            elif self.game.input.down_pressed:
+            elif self.game.input.down_pressed and not self.rect.bottom >= self.game.height:
                 y_move += 20
-            if self.game.input.left_pressed:
+            if self.game.input.left_pressed and not self.rect.left <= 0:
                 x_move -= 20
-            if self.game.input.right_pressed:
+            if self.game.input.right_pressed and not self.rect.right >= self.game.width:
                 x_move += 20
             if self.game.input.space_pressed:
                 if not self.cannon_cooldown:
