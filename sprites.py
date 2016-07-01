@@ -96,7 +96,7 @@ class Asteroid(Sprite):
         super(Asteroid, self).__init__()
 
         self.image = pygame.image.load(img_name).convert_alpha()
-        self.rect = Rect(randrange(956-width), -100, width, height)
+        self.rect = Rect(randrange(game.width-width), -100, width, height)
         self.y_speed = randrange(10, 30)
         self.game = game
 

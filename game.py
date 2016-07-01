@@ -1,16 +1,15 @@
 from os.path import join
 
 import pygame
-from pygame.constants import KMOD_CTRL, K_r
+from pygame.locals import K_r
 
-from pygame.locals import KMOD_ALT
+from pygame.locals import K_ESCAPE
 
 from pygame.locals import K_SPACE
 from pygame.locals import K_UP
 from pygame.locals import K_DOWN
 from pygame.locals import K_LEFT
 from pygame.locals import K_RIGHT
-from pygame.locals import K_F4
 
 from pygame.locals import QUIT
 from pygame.sprite import GroupSingle, spritecollideany, groupcollide, Group
@@ -37,10 +36,10 @@ class UserInput:
 
 
 class Game:
-    def __init__(self):
+    def __init__(self, *, width=956, height=560):
         pygame.init()
         self.config()
-        self._init_screen()
+        self._init_screen(width, height)
         self._init_font()
         self._init_sound()
         self.game_over = False
@@ -58,9 +57,9 @@ class Game:
         self.game_font = pygame.font.SysFont(font_name, 72)
         self.score_font = pygame.font.SysFont(font_name, 38)
 
-    def _init_screen(self):
-        self.width = 956
-        self.height = 560
+    def _init_screen(self, width, height):
+        self.width = width
+        self.height = height
         self.screen = pygame.display.set_mode((self.width, self.height), 0, 32)
         pygame.display.set_caption('DevInVale 2015')
 
@@ -87,16 +86,12 @@ class Game:
         if pressed_keys[K_SPACE]:
             self.input.space_pressed = True
 
-        pressed_mods = pygame.key.get_mods()
+        if pressed_keys[K_ESCAPE]:
+            self.input.quit_pressed = True
 
-        if pressed_mods and KMOD_ALT:
-            if pressed_keys[K_F4]:
-                self.input.quit_pressed = True
-
-        if pressed_mods and KMOD_CTRL:
-            if pressed_keys[K_r]:
-                if self.game_over:
-                    self.restart()
+        if pressed_keys[K_r]:
+            if self.game_over:
+                self.restart()
 
     def events(self):
         for event in pygame.event.get():
@@ -127,7 +122,8 @@ class Game:
         self.background_sound.set_volume(0.3)
         self.background_sound.play(loops=-1)
         background_filename = join('gfx', 'bg_big.png')
-        self.background = pygame.image.load(background_filename).convert()
+        background_image = pygame.image.load(background_filename).convert()
+        self.background = pygame.transform.scale(background_image, (self.width, self.height))
 
         self.elements['score'] = GroupSingle(ScoreSprite(self))
         self.elements['exploding_asteroids'] = ExplodingAsteroidsGroup()
@@ -135,25 +131,23 @@ class Game:
         self.elements['asteroids'] = AsteroidGroup(join('gfx', 'asteroid.png'), self)
         self.elements['ship'] = ShipGroup(sprite=Ship(join('gfx', 'ship.png'), 48, 48, self))
 
-
-
         while True:
             self.player_input()
             self.events()
             if self.input.quit_pressed:
-                exit(0)
+                raise SystemExit
 
             self.update()
             self.draw()
             self.detect_collision()
-            time_passed = self.clock.tick(30)
+            self.clock.tick(30)
 
     def restart(self):
         self.background_sound.stop()
-        self.__init__()
+        self.__init__(width=self.width, height=self.height)
         self.run()
 
 
 if __name__ == '__main__':
-    game = Game()
+    game = Game(width=640, height=480)
     game.run()
