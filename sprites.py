@@ -1,5 +1,6 @@
-from random import randrange
 from os.path import join
+from random import randrange, choice
+
 import pygame
 from pygame.rect import Rect
 from pygame.sprite import Sprite, Group, GroupSingle
@@ -16,6 +17,7 @@ class Ship(Sprite):
         self.exploded = False
         self.game = game
         self.cannon_cooldown = 10
+        self.poweruptime = 0
 
     def update(self):
         if not self.exploded:
@@ -34,17 +36,26 @@ class Ship(Sprite):
             if self.game.input.right_pressed and not self.rect.right >= self.game.width:
                 x_move += 20
             if self.game.input.space_pressed:
-                if not self.cannon_cooldown:
+                if self.poweruptime > 0:
                     self.game.laser_sound.play()
-                    self.game.elements['lasers'].add(LaserSprite(join('gfx', 'laser.png'), self.rect, self.game))
-                    self.cannon_cooldown = 6
+                    self.game.elements['lasers'].add(LaserSprite(join('gfx', 'laser.png'), self.rect))  # , self.game))
+                    self.poweruptime -= 1
+                if not self.game.ship_catches:
+                    if not self.cannon_cooldown:
+                        self.game.laser_sound.play()
+                        self.game.elements['lasers'].add(
+                            LaserSprite(join('gfx', 'laser.png'), self.rect))  # , self.game))
+                        self.cannon_cooldown = 6
+                else:
+                    self.game.ship_catches = []
+                    self.poweruptime = 75
             self.rect = self.rect.move(x_move, y_move)
             self.cannon_cooldown = self.cannon_cooldown - 1 if self.cannon_cooldown else 0
         else:
             self.groups()[-1].add(AnimatedShip(join('gfx', 'ship_exploded.png'),
-                                              self.rect,
-                                              3,
-                                              self.game))
+                                               self.rect,
+                                               3,
+                                               self.game))
 
 
 class ExplodingSprite(Sprite):
@@ -64,7 +75,7 @@ class ExplodingSprite(Sprite):
 
 class AnimatedShip(ExplodingSprite):
     def update(self):
-        self.visible_rect = Rect(self.explosion_step*self.visible_rect.width,
+        self.visible_rect = Rect(self.explosion_step * self.visible_rect.width,
                                  0,
                                  self.visible_rect.width,
                                  self.visible_rect.height)
@@ -73,7 +84,7 @@ class AnimatedShip(ExplodingSprite):
             self.groups()[0].add(TextSprite('GAME OVER', self.game))
             self.game.game_over = True
             self.game.db.save_score(self.game.score, 'player')
-            #self.game.db.get_scores('player')
+            # self.game.db.get_scores('player')
 
             self.kill()
 
@@ -96,7 +107,7 @@ class Asteroid(Sprite):
         super(Asteroid, self).__init__()
 
         self.image = pygame.image.load(img_name).convert_alpha()
-        self.rect = Rect(randrange(game.width-width), -100, width, height)
+        self.rect = Rect(randrange(game.width - width), -100, width, height)
         self.y_speed = randrange(10, 30)
         self.game = game
 
@@ -108,9 +119,12 @@ class Asteroid(Sprite):
 
     def kill(self):
         self.game.elements['exploding_asteroids'].add(AnimatedAsteroid(join('gfx', 'asteroid_exploded.png'),
-                                                    self.rect,
-                                                    4,
-                                                    self.game))
+                                                                       self.rect,
+                                                                       4,
+                                                                       self.game))
+        if self.game.newPU:
+            self.game.elements['power-ups'].add(PowerUp(join('gfx', 'PowerUp.png'), self.rect, self.game))
+            self.game.newPU = False
         super(Asteroid, self).kill()
 
 
@@ -176,16 +190,16 @@ class ScoreSprite(Sprite):
     def update(self, *args):
         super(ScoreSprite, self).update()
         if not self.game.game_over:
-            if self.score_countdown:
+            if self.score_countdown == 0:
                 self.game.score += 1
-                self.score_countdown -= 1
-            else:
                 self.score_countdown = 10
+            else:
+                self.score_countdown -= 1
             self.image = self.game.score_font.render(self.score_text.format(self.game.score), 1, (255, 255, 220))
 
 
 class LaserSprite(Sprite):
-    def __init__(self, img_name, rect, game):
+    def __init__(self, img_name, rect):  # , game):
         self.image = pygame.image.load(img_name).convert_alpha()
         self.rect = Rect(rect.centerx, rect.y, 2, 9)
         super(LaserSprite, self).__init__()
@@ -193,3 +207,32 @@ class LaserSprite(Sprite):
     def update(self, *args):
         super(LaserSprite, self).update()
         self.rect = self.rect.move(0, -20)
+
+
+class PowerUp(Sprite):
+    def __init__(self, img_name, rect, game):
+        self.game = game
+        self.image = pygame.image.load(img_name).convert_alpha()
+        self.rect = Rect(rect.centerx, rect.y, 40, 40)
+        self.x = choice([-5, 5])
+        self.y = choice([-5, 5])
+        super().__init__()
+
+    def update(self, *args):
+        super().update(*args)
+        if self.rect.top <= 0:
+            self.y = 5
+        if self.rect.bottom >= self.game.height:
+            self.y = -5
+        if self.rect.left <= 0:
+            self.x = 5
+        if self.rect.right >= self.game.width:
+            self.x = -5
+        self.rect = self.rect.move(self.x, self.y)
+
+
+class PowerUpGroup(Group):
+    def __init__(self, img_name, game, *sprites):
+        super().__init__(*sprites)
+        self.img_name = img_name
+        self.game = game

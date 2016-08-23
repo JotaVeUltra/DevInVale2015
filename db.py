@@ -1,45 +1,33 @@
 # coding: utf-8
 
-import sqlite3
+from sqlite3 import *
 
 
 class DB(object):
 
     def __init__(self, database):
-        self.connection = None
         self.database = database
-        self._create_score_table()
+        self.__create_score_table()
 
-    def _connect(self):
-        self.connection = sqlite3.connect(self.database)
-
-    def _create_score_table(self):
-        self._connect()
-
-        with self.connection as con:
+    def __create_score_table(self):
+        with connect(self.database) as con:
             try:
-                con.execute('CREATE TABLE scores (score INTEGER, player TEXT)')
-            except sqlite3.OperationalError:
+                con.execute('CREATE TABLE scores (player TEXT, score INTEGER)')
+            except OperationalError:
                 pass
-        self.connection.close()
+        con.close()
 
-    def save_score(self, score, player):
-        values = (score, player, )
+    def save_score(self, player, score):
+        values = (player, score, )
 
-        self._connect()
-        with self.connection as con:
+        with connect(self.database) as con:
             con.execute("INSERT INTO scores VALUES (?, ?)", values)
+        con.close()
 
-        self.connection.close()
-
-    def get_scores(self, player):
-        values = (player, )
-        self._connect()
-        scores = None
-        with self.connection as con:
+    def get_scores(self):
+        with connect(self.database) as con:
             scores = con.execute(
-                "SELECT * FROM scores where player=?", values).fetchmany(size=10)
-
-        self.connection.close()
+                "SELECT * FROM scores ORDER BY score DESC").fetchmany(size=10)
+        con.close()
 
         return scores
