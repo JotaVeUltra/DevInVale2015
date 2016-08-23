@@ -83,7 +83,7 @@ class AnimatedShip(ExplodingSprite):
         if self.explosion_step == self.sprite_count:
             self.groups()[0].add(TextSprite('GAME OVER', self.game))
             self.game.game_over = True
-            self.game.db.save_score(self.game.score, 'player')
+            self.game.db.save_score('player', self.game.score)
             # self.game.db.get_scores('player')
 
             self.kill()
