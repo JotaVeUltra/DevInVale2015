@@ -24,7 +24,7 @@ class DB(object):
             con.execute("INSERT INTO scores VALUES (?, ?)", values)
         con.close()
 
-    def get_scores(self):
+    def scores(self):
         with connect(self.database) as con:
             scores = con.execute(
                 "SELECT * FROM scores ORDER BY score DESC").fetchmany(size=10)

@@ -84,7 +84,6 @@ class AnimatedShip(ExplodingSprite):
             self.groups()[0].add(TextSprite('GAME OVER', self.game))
             self.game.game_over = True
             self.game.db.save_score('player', self.game.score)
-            # self.game.db.get_scores('player')
 
             self.kill()
 
@@ -95,7 +94,7 @@ class ShipGroup(GroupSingle):
             params = [sprite.image, sprite.rect]
             try:
                 params.append(sprite.visible_rect)
-            except:
+            except AttributeError:
                 pass
 
             self.spritedict[sprite] = surface.blit(*params)
@@ -142,11 +141,9 @@ class AnimatedAsteroid(ExplodingSprite):
 class ExplodingAsteroidsGroup(Group):
     def draw(self, surface):
         for sprite in self.sprites():
-            params = [sprite.image, sprite.rect]
-            try:
-                params.append(sprite.visible_rect)
-            except:
-                pass
+            params = [sprite.image,
+                      sprite.rect,
+                      sprite.visible_rect]
 
             self.spritedict[sprite] = surface.blit(*params)
         self.lostsprites = []

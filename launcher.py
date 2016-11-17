@@ -11,24 +11,33 @@ class Launcher:
         # window
         self.app = tkinter.Tk()
         self.app.title('DevInVale2015')
-        self.app.geometry('200x200')
 
-        tkinter.Label(self.app, text='width (max {}): '.format(self.app.winfo_screenwidth())).pack()
-        self.width_entry = tkinter.Entry(self.app)
+        self.config_frame = tkinter.Frame()
+        self.score_frame = tkinter.Frame()
+
+        tkinter.Label(self.config_frame, text='width (max {}): '
+                      .format(self.app.winfo_screenwidth())).pack()
+        self.width_entry = tkinter.Entry(self.config_frame)
         self.width_entry.pack()
-        tkinter.Label(self.app, text='height (max {}): '.format(self.app.winfo_screenheight())).pack()
-        self.height_entry = tkinter.Entry(self.app)
+        tkinter.Label(self.config_frame, text='height (max {}): '
+                      .format(self.app.winfo_screenheight())).pack()
+        self.height_entry = tkinter.Entry(self.config_frame)
         self.height_entry.pack()
         self.config = {}
 
-        # button
+        # buttons
         self.isfullscreen = tkinter.BooleanVar()
-        fullscreen = tkinter.Checkbutton(self.app, variable=self.isfullscreen, text='Fullscreen')
-        fullscreen.pack()
-        start_button = tkinter.Button(self.app, text='Start', command=self.start)
-        start_button.pack(side='bottom')
-        score_button = tkinter.Button(self.app, text='Score', command=self.score)
-        score_button.pack(side='bottom')
+        tkinter.Checkbutton(self.config_frame, variable=self.isfullscreen, text='Fullscreen').pack()
+        tkinter.Button(self.config_frame, text='Start', command=self.start).pack(side='bottom')
+
+        # scores
+        tkinter.Label(self.score_frame, text='Score\n').pack()
+        for player, score in DB('game.db').scores():
+            line = player + ' - ' + str(score)
+            tkinter.Label(self.score_frame, text=line).pack()
+
+        self.config_frame.grid(row=0, column=0, padx=10, pady=10)
+        self.score_frame.grid(row=0, column=1, padx=20, pady=10)
 
         self.app.mainloop()
 
@@ -52,29 +61,6 @@ class Launcher:
         else:
             game = Game(fullscreen=self.isfullscreen.get())
         game.run()
-
-    def score(self):
-        self.app.destroy()
-        Score()
-
-
-class Score:
-    def __init__(self):
-        # window
-        self.app = tkinter.Tk()
-        self.app.title('Scores')
-        self.app.geometry('200x200')
-
-        for player, score in DB('game.db').get_scores():
-            line = player + ' - ' + str(score)
-            tkinter.Label(self.app, text=line).pack()
-
-        tkinter.Button(self.app, text='Launcher', command=self.launcher).pack(side='bottom')
-        self.app.mainloop()
-
-    def launcher(self):
-        self.app.destroy()
-        Launcher()
 
 
 if __name__ == '__main__':

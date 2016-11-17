@@ -65,7 +65,6 @@ class Game:
             pygame.display.toggle_fullscreen()
 
     def __init_sound(self):
-        pygame.mixer.pre_init(44100, 32, 2, 4096)
         self.explosion_sound = pygame.mixer.Sound(join('sfx', 'boom.ogg'))
         self.laser_sound = pygame.mixer.Sound(join('sfx', 'laser.ogg'))
         self.background_sound = pygame.mixer.Sound(join('sfx', 'background.ogg'))
