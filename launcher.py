@@ -15,19 +15,26 @@ class Launcher:
         self.config_frame = tkinter.Frame()
         self.score_frame = tkinter.Frame()
 
-        tkinter.Label(self.config_frame, text='width (max {}): '
-                      .format(self.app.winfo_screenwidth())).pack()
-        self.width_entry = tkinter.Entry(self.config_frame)
-        self.width_entry.pack()
-        tkinter.Label(self.config_frame, text='height (max {}): '
-                      .format(self.app.winfo_screenheight())).pack()
-        self.height_entry = tkinter.Entry(self.config_frame)
-        self.height_entry.pack()
+        tkinter.Label(self.config_frame, text='player name').pack()
+        self.name_entry = tkinter.Entry(self.config_frame)
+        self.name_entry.insert(tkinter.END, 'player')
+        self.name_entry.pack()
+
+        # tkinter.Label(self.config_frame, text='width (max {})'
+        #               .format(self.app.winfo_screenwidth())).pack()
+        # self.width_entry = tkinter.Entry(self.config_frame)
+        # self.width_entry.pack()
+
+        # tkinter.Label(self.config_frame, text='height (max {})'
+        #               .format(self.app.winfo_screenheight())).pack()
+        # self.height_entry = tkinter.Entry(self.config_frame)
+        # self.height_entry.pack()
+
         self.config = {}
 
         # buttons
         self.isfullscreen = tkinter.BooleanVar()
-        tkinter.Checkbutton(self.config_frame, variable=self.isfullscreen, text='Fullscreen').pack()
+        tkinter.Checkbutton(self.config_frame, variable=self.isfullscreen, text='Fullscreen').pack(pady=10)
         tkinter.Button(self.config_frame, text='Start', command=self.start).pack(side='bottom')
 
         # scores
@@ -42,24 +49,26 @@ class Launcher:
         self.app.mainloop()
 
     def read_entry(self):
-        self.config['resolution'] = None
-        try:
-            width = int(self.width_entry.get())
-            height = int(self.height_entry.get())
-            if width <= int(self.app.winfo_screenwidth()) and height <= int(self.app.winfo_screenheight()):
-                self.config['resolution'] = (width, height)
-        except ValueError:
-            pass
+        self.config['player'] = self.name_entry.get()
+        self.config['fullscreen'] = self.isfullscreen.get()
+        # try:
+        #     width = int(self.width_entry.get())
+        #     height = int(self.height_entry.get())
+        #     if width <= int(self.app.winfo_screenwidth()) and height <= int(self.app.winfo_screenheight()):
+        #         self.config['resolution'] = (width, height)
+        # except ValueError:
+        #     pass
 
     def start(self):
         self.read_entry()
         self.app.destroy()
-        if self.config['resolution']:
-            game = Game(width=self.config['resolution'][0],
-                        height=self.config['resolution'][1],
-                        fullscreen=self.isfullscreen.get())
-        else:
-            game = Game(fullscreen=self.isfullscreen.get())
+        # if self.config['resolution']:
+        #     game = Game(width=self.config['resolution'][0],
+        #                 height=self.config['resolution'][1],
+        #                 fullscreen=self.isfullscreen.get(),
+        #                 player=self.config['player'])
+        # else:
+        game = Game(**self.config)
         game.run()
 
 

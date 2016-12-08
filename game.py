@@ -2,14 +2,7 @@ import random
 from os.path import join
 
 import pygame
-from pygame.locals import K_DOWN
-from pygame.locals import K_ESCAPE
-from pygame.locals import K_LEFT
-from pygame.locals import K_RIGHT
-from pygame.locals import K_SPACE
-from pygame.locals import K_UP
-from pygame.locals import K_r
-from pygame.locals import QUIT
+from pygame.locals import K_DOWN, K_ESCAPE, K_LEFT, K_RIGHT, K_SPACE, K_UP, K_r, QUIT
 from pygame.sprite import GroupSingle, spritecollideany, groupcollide, Group, spritecollide
 
 from db import DB
@@ -32,7 +25,7 @@ class UserInput:
 
 
 class Game:
-    def __init__(self, *, width=960, height=560, fullscreen=False):
+    def __init__(self, *, width=960, height=560, fullscreen=False, player='player'):
         pygame.init()
         self.__config()
         self.__init_screen(width, height, fullscreen)
@@ -40,6 +33,7 @@ class Game:
         self.__init_sound()
         self.game_over = False
         self.db = DB('game.db')
+        self.player = player
 
     def __config(self):
         self.clock = pygame.time.Clock()
@@ -69,33 +63,28 @@ class Game:
         self.laser_sound = pygame.mixer.Sound(join('sfx', 'laser.ogg'))
         self.background_sound = pygame.mixer.Sound(join('sfx', 'background.ogg'))
 
-    def player_input(self):
+    def update_input(self):
         self.input.reset()
         pressed_keys = pygame.key.get_pressed()
 
-        if not (pressed_keys[K_UP] and pressed_keys[K_DOWN]):
-            if pressed_keys[K_UP]:
-                self.input.up_pressed = True
-            if pressed_keys[K_DOWN]:
-                self.input.down_pressed = True
+        if pressed_keys[K_UP] is not pressed_keys[K_DOWN]:
+            self.input.up_pressed = pressed_keys[K_UP]
+            self.input.down_pressed = pressed_keys[K_DOWN]
 
-        if not (pressed_keys[K_LEFT] and pressed_keys[K_RIGHT]):
-            if pressed_keys[K_LEFT]:
-                self.input.left_pressed = True
-            if pressed_keys[K_RIGHT]:
-                self.input.right_pressed = True
+        if pressed_keys[K_LEFT] is not pressed_keys[K_RIGHT]:
+            self.input.left_pressed = pressed_keys[K_LEFT]
+            self.input.right_pressed = pressed_keys[K_RIGHT]
 
         if pressed_keys[K_SPACE]:
             self.input.space_pressed = True
-
-        if pressed_keys[K_ESCAPE]:
-            self.input.quit_pressed = True
 
         if pressed_keys[K_r]:
             if self.game_over:
                 self.restart()
 
-    def events(self):
+        if pressed_keys[K_ESCAPE]:
+            self.input.quit_pressed = True
+
         for event in pygame.event.get():
             if event.type == QUIT:
                 self.input.quit_pressed = True
@@ -138,8 +127,7 @@ class Game:
         self.elements['ship'] = ShipGroup(sprite=Ship(join('gfx', 'ship.png'), 48, 48, self))
 
         while True:
-            self.player_input()
-            self.events()
+            self.update_input()
             if self.input.quit_pressed:
                 raise SystemExit
             self.update()

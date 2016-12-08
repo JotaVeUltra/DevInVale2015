@@ -38,17 +38,17 @@ class Ship(Sprite):
             if self.game.input.space_pressed:
                 if self.poweruptime > 0:
                     self.game.laser_sound.play()
-                    self.game.elements['lasers'].add(LaserSprite(join('gfx', 'laser.png'), self.rect))  # , self.game))
+                    self.game.elements['lasers'].add(LaserSprite(join('gfx', 'laser.png'), self.rect))
                     self.poweruptime -= 1
                 if not self.game.ship_catches:
                     if not self.cannon_cooldown:
                         self.game.laser_sound.play()
                         self.game.elements['lasers'].add(
-                            LaserSprite(join('gfx', 'laser.png'), self.rect))  # , self.game))
+                            LaserSprite(join('gfx', 'laser.png'), self.rect))
                         self.cannon_cooldown = 6
                 else:
                     self.game.ship_catches = []
-                    self.poweruptime = 75
+                    self.poweruptime += 75
             self.rect = self.rect.move(x_move, y_move)
             self.cannon_cooldown = self.cannon_cooldown - 1 if self.cannon_cooldown else 0
         else:
@@ -83,7 +83,7 @@ class AnimatedShip(ExplodingSprite):
         if self.explosion_step == self.sprite_count:
             self.groups()[0].add(TextSprite('GAME OVER', self.game))
             self.game.game_over = True
-            self.game.db.save_score('player', self.game.score)
+            self.game.db.save_score(self.game.player, self.game.score)
 
             self.kill()
 
