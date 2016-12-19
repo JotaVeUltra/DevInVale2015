@@ -5,18 +5,20 @@ import pygame
 from pygame.rect import Rect
 from pygame.sprite import Sprite, Group, GroupSingle
 
+import db
+
 __author__ = 'julio'
 
 
 class Ship(Sprite):
     def __init__(self, img_name, width, height, game):
-        super(Ship, self).__init__()
+        super().__init__()
 
         self.image = pygame.image.load(img_name).convert_alpha()
         self.rect = Rect(454, 516, width, height)
         self.exploded = False
         self.game = game
-        self.cannon_cooldown = 10
+        self.cannon_cooldown = 15
         self.poweruptime = 0
 
     def update(self):
@@ -27,15 +29,15 @@ class Ship(Sprite):
 
             x_move = 0
             y_move = 0
-            if self.game.input.up_pressed and not self.rect.top <= 0:
+            if self.game.input.up and not self.rect.top <= 0:
                 y_move -= 20
-            elif self.game.input.down_pressed and not self.rect.bottom >= self.game.height:
+            elif self.game.input.down and not self.rect.bottom >= self.game.height:
                 y_move += 20
-            if self.game.input.left_pressed and not self.rect.left <= 0:
+            if self.game.input.left and not self.rect.left <= 0:
                 x_move -= 20
-            if self.game.input.right_pressed and not self.rect.right >= self.game.width:
+            if self.game.input.right and not self.rect.right >= self.game.width:
                 x_move += 20
-            if self.game.input.space_pressed:
+            if self.game.input.fire:
                 if self.poweruptime > 0:
                     self.game.laser_sound.play()
                     self.game.elements['lasers'].add(LaserSprite(join('gfx', 'laser.png'), self.rect))
@@ -60,7 +62,7 @@ class Ship(Sprite):
 
 class ExplodingSprite(Sprite):
     def __init__(self, img_name, rect, sprite_count, game):
-        super(ExplodingSprite, self).__init__()
+        super().__init__()
 
         self.image = pygame.image.load(img_name).convert_alpha()
         self.rect = self.image.get_rect()
@@ -83,7 +85,7 @@ class AnimatedShip(ExplodingSprite):
         if self.explosion_step == self.sprite_count:
             self.groups()[0].add(TextSprite('GAME OVER', self.game))
             self.game.game_over = True
-            self.game.db.save_score(self.game.player, self.game.score)
+            db.save_score(self.game.player, self.game.score)
 
             self.kill()
 
@@ -103,11 +105,10 @@ class ShipGroup(GroupSingle):
 
 class Asteroid(Sprite):
     def __init__(self, img_name, width, height, game):
-        super(Asteroid, self).__init__()
-
+        super().__init__()
         self.image = pygame.image.load(img_name).convert_alpha()
         self.rect = Rect(randrange(game.width - width), -100, width, height)
-        self.y_speed = randrange(10, 30)
+        self.y_speed = randrange(15, 25)
         self.game = game
 
     def update(self, *args):
@@ -124,7 +125,7 @@ class Asteroid(Sprite):
         if self.game.newPU:
             self.game.elements['power-ups'].add(PowerUp(join('gfx', 'PowerUp.png'), self.rect, self.game))
             self.game.newPU = False
-        super(Asteroid, self).kill()
+        super().kill()
 
 
 class AnimatedAsteroid(ExplodingSprite):
@@ -151,7 +152,7 @@ class ExplodingAsteroidsGroup(Group):
 
 class AsteroidGroup(Group):
     def __init__(self, img_name, game, *sprites):
-        super(AsteroidGroup, self).__init__(*sprites)
+        super().__init__(*sprites)
         self.img_name = img_name
         self.new_asteroid_countdown = 10
         self.game = game
@@ -162,48 +163,45 @@ class AsteroidGroup(Group):
             self.add(Asteroid(self.img_name, 64, 64, self.game))
             self.new_asteroid_countdown = 10
 
-        super(AsteroidGroup, self).update(*args)
+        super().update(*args)
 
 
 class TextSprite(Sprite):
     def __init__(self, text, game):
         self.image = game.game_font.render(text, 1, (255, 0, 0))
         self.rect = self.image.get_rect().move(335, 250)
-        super(TextSprite, self).__init__()
+        super().__init__()
 
 
 class ScoreSprite(Sprite):
     def __init__(self, game):
         self.score_text = 'Score: {}'
         self.game = game
-        self.game.score = 0
-        self.image = game.score_font.render(self.score_text.format(self.game.score), 1,
-                                            (255, 255, 220))
-        self.rect = self.image.get_rect().move(15, 15)
-        self.game = game
         self.score_countdown = 10
-        super(ScoreSprite, self).__init__()
+        self.update()
+        self.rect = self.image.get_rect().move(15, 15)
+        super().__init__()
 
     def update(self, *args):
-        super(ScoreSprite, self).update()
         if not self.game.game_over:
             if self.score_countdown == 0:
                 self.game.score += 1
                 self.score_countdown = 10
             else:
                 self.score_countdown -= 1
-            self.image = self.game.score_font.render(self.score_text.format(self.game.score), 1, (255, 255, 220))
+            self.image = self.game.score_font.render(self.score_text.format(self.game.score),
+                                                     1,
+                                                     (255, 255, 220))
 
 
 class LaserSprite(Sprite):
-    def __init__(self, img_name, rect):  # , game):
+    def __init__(self, img_name, rect):
         self.image = pygame.image.load(img_name).convert_alpha()
         self.rect = Rect(rect.centerx, rect.y, 2, 9)
-        super(LaserSprite, self).__init__()
+        super().__init__()
 
-    def update(self, *args):
-        super(LaserSprite, self).update()
-        self.rect = self.rect.move(0, -20)
+    def update(self):
+        self.rect = self.rect.move(0, -10)
 
 
 class PowerUp(Sprite):
@@ -215,8 +213,7 @@ class PowerUp(Sprite):
         self.y = choice([-5, 5])
         super().__init__()
 
-    def update(self, *args):
-        super().update(*args)
+    def update(self):
         if self.rect.top <= 0:
             self.y = 5
         if self.rect.bottom >= self.game.height:
@@ -226,10 +223,3 @@ class PowerUp(Sprite):
         if self.rect.right >= self.game.width:
             self.x = -5
         self.rect = self.rect.move(self.x, self.y)
-
-
-class PowerUpGroup(Group):
-    def __init__(self, img_name, game, *sprites):
-        super().__init__(*sprites)
-        self.img_name = img_name
-        self.game = game
