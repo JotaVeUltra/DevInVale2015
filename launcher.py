@@ -1,9 +1,10 @@
 # Python packages
-from configparser import ConfigParser
 import tkinter
+from configparser import ConfigParser
+from os.path import isfile
 
 # Modules from this project
-from constants import TITLE
+from constants import TITLE, SETTINGS, DEFAULT_SETTINGS
 from db import scores
 from game import Game
 
@@ -18,7 +19,12 @@ class Launcher:
         score_frame = tkinter.Frame()
 
         self.config = ConfigParser()
-        self.config.read('settings.cfg')
+        if isfile(SETTINGS):
+            self.config.read(SETTINGS)
+        else:
+            self.config.read(DEFAULT_SETTINGS)
+            with open(SETTINGS, 'w') as configfile:
+                self.config.write(configfile)
 
         tkinter.Label(config_frame, text='player name').pack()
         self.name_entry = tkinter.Entry(config_frame)
@@ -45,7 +51,7 @@ class Launcher:
     def read_entry(self):
         self.config['VIDEO']['fullscreen'] = 'yes' if self.isfullscreen.get() else 'no'
         self.config['USER']['player'] = self.name_entry.get()
-        with open('settings.cfg', 'w') as configfile:
+        with open(SETTINGS, 'w') as configfile:
             self.config.write(configfile)
 
     def start(self):

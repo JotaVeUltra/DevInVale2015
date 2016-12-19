@@ -1,13 +1,13 @@
-import random
-from os.path import join
+from random import randint
 from configparser import ConfigParser
+from os.path import join
 
 import pygame
 from pygame.locals import K_DOWN, K_ESCAPE, K_LEFT, K_RIGHT, K_SPACE, K_UP, K_r, QUIT
 from pygame.sprite import GroupSingle, spritecollideany, groupcollide, Group, spritecollide
 
-from sprites import Ship, AsteroidGroup, ShipGroup, ScoreSprite, ExplodingAsteroidsGroup
 from constants import TITLE
+from sprites import Ship, AsteroidGroup, ShipGroup, ScoreSprite, ExplodingAsteroidsGroup
 
 __author__ = 'julio'
 
@@ -104,7 +104,7 @@ class Game:
             self.ship_catches = spritecollide(self.elements['ship'].sprite, self.elements['power-ups'], True)
 
         if groupcollide(self.elements['lasers'], self.elements['asteroids'], True, True):
-            if random.randint(1, 20) == 1:
+            if randint(1, 20) == 1:
                 self.newPU = True
             self.score_add(50)
 
