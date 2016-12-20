@@ -49,7 +49,7 @@ class Ship(Sprite):
                             LaserSprite(join('gfx', 'laser.png'), self.rect))
                         self.cannon_cooldown = 6
                 else:
-                    self.game.ship_catches = []
+                    self.game.ship_catches.pop()
                     self.poweruptime += 75
             self.rect = self.rect.move(x_move, y_move)
             self.cannon_cooldown = self.cannon_cooldown - 1 if self.cannon_cooldown else 0
@@ -116,6 +116,8 @@ class Asteroid(Sprite):
         y_move = self.y_speed
 
         self.rect = self.rect.move(x_move, y_move)
+        if self.rect.top > self.game.height:
+            super().kill()
 
     def kill(self):
         self.game.elements['exploding_asteroids'].add(AnimatedAsteroid(join('gfx', 'asteroid_exploded.png'),
@@ -202,6 +204,8 @@ class LaserSprite(Sprite):
 
     def update(self):
         self.rect = self.rect.move(0, -10)
+        if self.rect.bottom < 0:
+            self.kill()
 
 
 class PowerUp(Sprite):
