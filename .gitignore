@@ -1,6 +1,7 @@
 __pycache__/
 .idea/
-*.py[co]
+*.code-workspace
 *.db
+*.py[co]
 venv/
 settings.cfg
