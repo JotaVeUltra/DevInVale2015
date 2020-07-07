@@ -3,5 +3,5 @@ __pycache__/
 *.code-workspace
 *.db
 *.py[co]
-venv/
 settings.cfg
+venv/
