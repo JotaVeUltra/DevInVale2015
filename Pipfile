@@ -9,4 +9,4 @@ verify_ssl = true
 python_version = "3.6"
 
 [packages]
-pygame = "==1.9.6"
+pygame = "==2.0.1"
